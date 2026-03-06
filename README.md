@@ -8,7 +8,7 @@ Intrax Media is a modern and responsive agency portfolio website designed to sho
 
 ## 📂 GitHub Repository
 
-👉 https://github.com/zohaib-uddin/your-repository-linkIntrax-Media
+👉 https://github.com/zohaib-uddin/Intrax-Media
 ## 🚀 Features
 
 * Modern and responsive design
@@ -63,13 +63,13 @@ If you want to run this project locally:
 1. Clone the repository
 
 ```bash
-git clone https://github.com/zohaib-uddin/your-repository-link.git
+git https://github.com/zohaib-uddin/Intrax-Media.git
 ```
 
 2. Navigate to the project folder
 
 ```bash
-cd project-folder-name
+cd intraxmedia
 ```
 
 3. Install dependencies
