@@ -1,4 +1,4 @@
-# Intrax Media – Agency Portfolio Website
+# Intrax Media – Agency Website
 
 Intrax Media is a modern and responsive agency portfolio website designed to showcase digital services, projects, and company information in a clean and professional way. The website highlights the agency’s capabilities, services, and portfolio while providing an engaging user experience for potential clients.
 
