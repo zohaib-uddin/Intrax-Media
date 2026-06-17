@@ -1,0 +1,434 @@
+import React, { useState, useEffect } from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import { Menu, X, ChevronDown, ChevronRight, User, LogOut } from 'lucide-react';
+import { Button } from './Button';
+import { UserSession } from '../App';
+
+import { PORTFOLIO_BRANDS } from '../portfolioData';
+
+interface NavbarProps {
+  user: UserSession | null;
+  setUser: (user: UserSession | null) => void;
+}
+
+export const Navbar: React.FC<NavbarProps> = ({ user, setUser }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const [activeMobileDropdown, setActiveMobileDropdown] = useState<string | null>(null);
+  const [userDropdownOpen, setUserDropdownOpen] = useState(false);
+  const location = useLocation();
+
+  const getInitials = (name: string) => {
+    if (!name) return 'IM';
+    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+  };
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 10);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Close mobile menu when route changes
+  useEffect(() => {
+    setIsOpen(false);
+    setActiveMobileDropdown(null);
+  }, [location]);
+
+  const navLinks = [
+    { name: 'Home', path: '/' },
+    { 
+      name: 'Services', 
+      path: '/services',
+      dropdown: [
+        { name: 'Paid Social Agency', path: '/services/paid-social' },
+        { name: 'WordPress & Shopify', path: '/services/wordpress' },
+        { name: 'Whitelabel Stores', path: '/services/whitelabel' },
+        { name: 'SEO', path: '/services/seo' },
+        { name: 'Branding', path: '/services/branding' },
+        { name: 'Performance Ads', path: '/services/performance' },
+        { name: 'Social Media Mgmt', path: '/services/social-mgmt' },
+        { name: 'Alibaba Marketing', path: '/services/alibaba' },
+        { name: 'Amazon Marketing', path: '/services/amazon' },
+        { name: 'Walmart Marketing', path: '/services/walmart' },
+        { name: 'E-commerce Strategy', path: '/services/ecom-strategy' },
+        { name: 'Influencer Marketing', path: '/services/influencer' },
+        { name: 'AI UGC Ads', path: '/services/ai-ugc-ads' },
+      ]
+    },
+    { 
+      name: 'Portfolio', 
+      path: '/portfolio',
+      dropdown: [
+        { 
+          name: 'Performance Marketing', 
+          path: '/portfolio',
+          subDropdown: PORTFOLIO_BRANDS.map(brand => ({
+            name: brand.name,
+            path: `/portfolio/${brand.name.toLowerCase().replace(/\s+/g, '-')}`
+          }))
+        }
+      ]
+    },
+    {
+      name: 'Courses',
+      path: '/courses'
+    },
+    { 
+      name: 'About Us', 
+      path: '/about',
+      dropdown: [
+        { name: 'Our Vision', path: '/about/our-vision' },
+        { name: 'Our Domain', path: '/about/our-domain' },
+        { name: 'Our Story', path: '/about/our-story' },
+        { name: 'Why Only Intrax', path: '/about/why-intrax' }
+      ]
+    },
+  ];
+
+  const handleMobileDropdownClick = (name: string) => {
+    setActiveMobileDropdown(activeMobileDropdown === name ? null : name);
+  };
+
+  return (
+    <nav className={`fixed w-full z-50 transition-all duration-500 ease-out transform ${scrolled ? 'bg-white shadow-lg py-3' : 'bg-white/95 backdrop-blur-sm py-5'} animate-slide-down`}>
+      <style>{`
+        @keyframes slide-down {
+          from { transform: translateY(-100%); opacity: 0; }
+          to { transform: translateY(0); opacity: 1; }
+        }
+        .animate-slide-down {
+          animation: slide-down 0.8s ease-out forwards;
+        }
+        
+        @keyframes water-drop {
+          0%, 100% { transform: translateY(0) scale(1); opacity: 1; }
+          50% { transform: translateY(5px) scale(0.9, 1.1); opacity: 0.8; }
+        }
+        
+        @keyframes logo-float {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-3px); }
+        }
+        
+        @keyframes m-glow {
+          0%, 100% { opacity: 0.2; stroke-width: 10; }
+          50% { opacity: 0.4; stroke-width: 12; }
+        }
+
+        .animate-dot {
+          animation: water-drop 3s ease-in-out infinite;
+        }
+        
+        .animate-logo-float {
+          animation: logo-float 4s ease-in-out infinite;
+        }
+        
+        .animate-m-glow {
+          animation: m-glow 3s ease-in-out infinite;
+        }
+      `}</style>
+      <div className="w-full px-4 sm:px-8 lg:px-12">
+        <div className="flex justify-between items-center">
+          {/* Logo */}
+          <Link to="/" className="flex items-center space-x-3 group shrink-0">
+            <div className="relative w-11 h-11 flex items-center justify-center animate-logo-float">
+              {/* Background Glow Effect */}
+              <div className="absolute inset-0 bg-brand-500/0 group-hover:bg-brand-500/30 rounded-full blur-2xl transition-all duration-700"></div>
+              
+              <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible relative z-10">
+                {/* Stylish 'M' - Background Layer */}
+                <path 
+                  d="M15 80 L15 25 L50 60 L85 25 L85 80" 
+                  fill="none" 
+                  stroke="#ffd900" 
+                  strokeWidth="10" 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round"
+                  className="animate-m-glow group-hover:animate-none group-hover:opacity-100 transition-all duration-500 group-hover:translate-y-[-2px] group-hover:stroke-black"
+                />
+                
+                {/* Bold 'I' - Foreground Layer */}
+                <path 
+                  d="M44 25 H56 V85 H44 Z" 
+                  fill="#ffd900"
+                  className="group-hover:translate-y-[2px] transition-all duration-500 drop-shadow-xl"
+                />
+                
+                {/* Accent Dot - Water Drop Style */}
+                <circle 
+                  cx="50" cy="12" r="6" 
+                  fill="#ffd900"
+                  className="animate-dot group-hover:animate-none group-hover:scale-125 group-hover:-translate-y-2 transition-all duration-500 ease-out"
+                />
+              </svg>
+            </div>
+            <span className="text-xl font-display font-bold text-black tracking-tight group-hover:text-brand-500 transition-colors">
+              Intrax<span className="text-brand-500">Media</span>
+            </span>
+          </Link>
+
+          {/* Desktop Nav */}
+          <div className="hidden md:flex items-center space-x-8 ml-auto">
+            {navLinks.map((link) => (
+              <div key={link.name} className="relative group">
+                {link.dropdown ? (
+                  <>
+                    <Link
+                      to={link.path}
+                      className={`flex items-center gap-1 text-sm font-bold uppercase tracking-wide transition-all duration-300 relative ${location.pathname === link.path ? 'text-brand-500' : 'text-black hover:text-brand-500'}`}
+                    >
+                      {link.name}
+                      <ChevronDown size={14} className="group-hover:rotate-180 transition-transform duration-300" />
+                      <span className={`absolute -bottom-1 left-0 w-0 h-0.5 bg-brand-500 transition-all duration-300 group-hover:w-full ${location.pathname === link.path ? 'w-full' : ''}`}></span>
+                    </Link>
+                    
+                    {/* Dropdown Menu */}
+                    <div className="absolute top-full right-0 pt-4 w-64 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 transform translate-y-2 group-hover:translate-y-0">
+                      <div className="bg-white rounded-xl shadow-xl border border-gray-100 py-2">
+                        {link.dropdown.map((dropItem: any) => (
+                          <div key={dropItem.name} className="relative group/sub">
+                            <Link 
+                              to={dropItem.path}
+                              className="flex items-center justify-between px-6 py-3 text-sm font-bold text-black hover:bg-brand-50 hover:text-brand-500 transition-colors"
+                            >
+                              {dropItem.name}
+                              {dropItem.subDropdown && <ChevronRight size={14} />}
+                            </Link>
+                            
+                            {dropItem.subDropdown && (
+                              <div className="absolute right-full top-0 w-64 opacity-0 group-hover/sub:opacity-100 transition-all duration-200 transform translate-x-0 z-[100] pointer-events-none group-hover/sub:pointer-events-auto">
+                                <div className="pr-1">
+                                  <div className="bg-white rounded-xl shadow-2xl border border-gray-100 py-2 max-h-[80vh] overflow-y-auto custom-scrollbar">
+                                    <div className="px-6 py-2 text-[10px] font-black uppercase tracking-widest text-brand-500 border-b border-gray-50 mb-1">
+                                      All Brands
+                                    </div>
+                                    {dropItem.subDropdown.map((subItem: any) => (
+                                      <Link
+                                        key={subItem.path}
+                                        to={subItem.path}
+                                        className="block px-6 py-2.5 text-xs font-bold text-black hover:bg-brand-50 hover:text-brand-500 transition-colors border-l-2 border-transparent hover:border-brand-500"
+                                      >
+                                        {subItem.name}
+                                      </Link>
+                                    ))}
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <Link 
+                    to={link.path}
+                    className={`text-sm font-bold uppercase tracking-wide transition-all duration-300 relative group ${location.pathname === link.path ? 'text-brand-500' : 'text-black hover:text-brand-500'}`}
+                  >
+                    {link.name}
+                    <span className={`absolute -bottom-1 left-0 w-0 h-0.5 bg-brand-500 transition-all duration-300 group-hover:w-full ${location.pathname === link.path ? 'w-full' : ''}`}></span>
+                  </Link>
+                )}
+              </div>
+            ))}
+            
+            <Link to="/contact" className="shrink-0">
+              <Button size="sm" variant="black">Get In Touch</Button>
+            </Link>
+
+            {/* Desktop Authed Profile / Login Button */}
+            {user ? (
+              <div className="relative shrink-0">
+                <button 
+                  onClick={() => setUserDropdownOpen(!userDropdownOpen)}
+                  onBlur={() => setTimeout(() => setUserDropdownOpen(false), 200)}
+                  className="flex items-center gap-2 group p-1.5 rounded-full hover:bg-gray-100 transition-all outline-none"
+                >
+                  <div className="relative w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm text-black bg-[#ffd900] shadow-md border-2 border-black/80 hover:scale-105 transition-all overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-tr from-brand-500 to-amber-300 opacity-20"></div>
+                    <span className="relative z-10 font-bold">{getInitials(user.name)}</span>
+                    <span className="absolute -inset-0.5 rounded-full border border-[#ffd900] animate-ping opacity-25"></span>
+                  </div>
+                </button>
+
+                {/* Dropdown Menu on Click */}
+                {userDropdownOpen && (
+                  <div className="absolute right-0 mt-3 w-64 bg-white rounded-2xl shadow-2xl border border-gray-100 py-3 z-[100] animate-in fade-in slide-in-from-top-3 duration-200">
+                    <div className="px-5 py-3 border-b border-gray-50">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-xs text-black bg-[#ffd900] shrink-0">
+                          {getInitials(user.name)}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-xs font-black text-black truncate leading-snug">{user.name}</p>
+                          <p className="text-[10px] text-gray-400 font-semibold truncate mt-0.5">{user.email}</p>
+                          <span className={`inline-block text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full mt-1.5 ${user.role === 'admin' ? 'bg-black text-[#ffd900]' : 'bg-brand-50 text-brand-500'}`}>
+                            {user.role === 'admin' ? 'Admin' : 'Member'}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="py-1">
+                      <Link 
+                        to="/courses" 
+                        onClick={() => setUserDropdownOpen(false)}
+                        className="flex items-center gap-3 px-5 py-3 text-xs font-black text-gray-700 hover:bg-gray-50 hover:text-black transition-colors"
+                      >
+                        <User size={14} className="text-brand-500" />
+                        <span>Course Library</span>
+                      </Link>
+                    </div>
+
+                    <div className="border-t border-gray-50 pt-2 px-3">
+                      <button 
+                        onClick={() => {
+                          setUserDropdownOpen(false);
+                          setUser(null);
+                        }}
+                        className="w-full flex items-center gap-3 px-4 py-2.5 text-xs font-black text-red-600 hover:bg-red-50 rounded-xl transition-all"
+                      >
+                        <LogOut size={14} />
+                        <span>Log Out Account</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <Link 
+                to="/login" 
+                className={`text-sm font-bold uppercase tracking-wide transition-all duration-300 relative group shrink-0 ${location.pathname === '/login' ? 'text-brand-500' : 'text-black hover:text-brand-500'}`}
+              >
+                <span>Login</span>
+                <span className={`absolute -bottom-1 left-0 w-0 h-0.5 bg-brand-500 transition-all duration-300 group-hover:w-full ${location.pathname === '/login' ? 'w-full' : ''}`}></span>
+              </Link>
+            )}
+          </div>
+
+          {/* Mobile Menu Button */}
+          <div className="md:hidden">
+            <button onClick={() => setIsOpen(!isOpen)} className="text-black hover:text-brand-500 transition-colors p-2">
+              {isOpen ? <X size={24} className="text-brand-500" /> : <Menu size={24} className="text-brand-500" />}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Mobile Nav */}
+      <div className={`md:hidden absolute top-full left-0 w-full bg-white border-t border-brand-100 shadow-xl transition-all duration-300 origin-top transform ${isOpen ? 'scale-y-100 opacity-100' : 'scale-y-0 opacity-0 h-0'}`}>
+        <div className="px-4 py-6 space-y-4 max-h-[80vh] overflow-y-auto">
+          {navLinks.map((link) => (
+            <div key={link.name}>
+              {link.dropdown ? (
+                <div>
+                  <div 
+                    onClick={() => handleMobileDropdownClick(link.name)}
+                    className="flex items-center justify-between w-full px-4 py-3 rounded-lg text-base font-bold text-black hover:text-brand-500 hover:bg-brand-50 transition-colors cursor-pointer"
+                  >
+                    {link.name}
+                    <ChevronDown size={18} className={`transform transition-transform ${activeMobileDropdown === link.name ? 'rotate-180' : ''}`} />
+                  </div>
+                  <div className={`pl-8 space-y-2 overflow-hidden transition-all duration-300 ${activeMobileDropdown === link.name ? 'max-h-[1000px] opacity-100 mt-2' : 'max-h-0 opacity-0'}`}>
+                    {link.dropdown.map((dropItem: any) => (
+                      <div key={dropItem.name}>
+                        <Link
+                          to={dropItem.path}
+                          className="block px-4 py-2 rounded-lg text-sm font-bold text-gray-600 hover:text-brand-500 hover:bg-brand-50"
+                        >
+                          {dropItem.name}
+                        </Link>
+                        {dropItem.subDropdown && (
+                          <div className="pl-4 mt-2 space-y-1 border-l-2 border-brand-100 ml-4">
+                            <div className="px-4 py-1 text-[10px] font-black uppercase tracking-widest text-brand-500 opacity-70">
+                              All Brands
+                            </div>
+                            {dropItem.subDropdown.map((subItem: any) => (
+                              <Link
+                                key={subItem.path}
+                                to={subItem.path}
+                                className="block px-4 py-2 text-sm font-bold text-gray-500 hover:text-brand-500 hover:bg-brand-50 rounded-lg transition-colors"
+                              >
+                                {subItem.name}
+                              </Link>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <Link
+                  to={link.path}
+                  className="block px-4 py-3 rounded-lg text-base font-bold text-black hover:text-brand-500 hover:bg-brand-50 transition-colors border-l-4 border-transparent hover:border-brand-500"
+                >
+                  {link.name}
+                </Link>
+              )}
+            </div>
+          ))}
+
+ <div className="pt-2 px-4">
+            <Link to="/contact" className="block w-full">
+              <Button fullWidth variant="primary">Get In Touch</Button>
+            </Link>
+          </div>
+
+
+          {/* Mobile User Profile Section */}
+          <div className="border-t border-brand-50 pt-4 px-4">
+            {user ? (
+              <div className="bg-gray-50 rounded-2xl p-4 border border-brand-100 flex flex-col gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-full flex items-center justify-center font-bold text-sm text-black bg-[#ffd900] shrink-0 shadow">
+                    {getInitials(user.name)}
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-black text-black leading-snug">{user.name}</h4>
+                    <p className="text-[11px] text-gray-400 font-semibold">{user.email}</p>
+                    <span className={`inline-block text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full mt-1.5 ${user.role === 'admin' ? 'bg-black text-[#ffd900]' : 'bg-brand-50 text-brand-500'}`}>
+                      {user.role === 'admin' ? 'Admin' : 'Member'}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 mt-2">
+                  <Link 
+                    to="/courses" 
+                    onClick={() => setIsOpen(false)}
+                    className="flex items-center justify-center gap-2 bg-black text-[#ffd900] text-center rounded-xl py-2.5 text-xs font-black uppercase tracking-wider"
+                  >
+                    Library
+                  </Link>
+                  <button 
+                    onClick={() => {
+                      setIsOpen(false);
+                      setUser(null);
+                    }}
+                    className="flex items-center justify-center gap-2 bg-red-50 text-red-600 text-center rounded-xl py-2.5 text-xs font-black uppercase tracking-wider border border-red-100"
+                  >
+                    Logout
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <Link 
+                to="/login"
+                onClick={() => setIsOpen(false)}
+                className="block w-full text-center bg-gray-50 border border-brand-200 text-black hover:bg-brand-500 hover:text-black py-3.5 px-4 rounded-xl text-sm font-black uppercase tracking-widest transition-all"
+              >
+                Login to Portal
+              </Link>
+            )}
+          </div>
+
+         
+        </div>
+      </div>
+    </nav>
+  );
+};

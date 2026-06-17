@@ -1,0 +1,18 @@
+[
+  {
+    "id": "user_3FBKjbw2fRJvmZHsUJmUtiwyN9h",
+    "name": "Zohaib Uddin",
+    "email": "zohaibuddin@gmail.com",
+    "role": "user",
+    "first_name": "Zohaib",
+    "last_name": "Uddin"
+  },
+  {
+    "id": "user_3FB1f8IrM6ZOhqsCOmTj0aGTUaM",
+    "name": "Intrax Media",
+    "email": "intraxmediateam@gmail.com",
+    "role": "admin",
+    "first_name": "Intrax",
+    "last_name": "Media"
+  }
+]
