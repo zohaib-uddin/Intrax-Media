@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- Stylish 'M' - Background Layer -->
+  <path 
+    d="M15 80 L15 25 L50 60 L85 25 L85 80" 
+    fill="none" 
+    stroke="#ffd900" 
+    stroke-width="10" 
+    stroke-linecap="round" 
+    stroke-linejoin="round"
+  />
+  
+  <!-- Bold 'I' - Foreground Layer -->
+  <path 
+    d="M44 25 H56 V85 H44 Z" 
+    fill="#ffd900"
+  />
+  
+  <!-- Accent Dot - Water Drop Style -->
+  <circle 
+    cx="50" cy="12" r="6" 
+    fill="#ffd900"
+  />
+</svg>

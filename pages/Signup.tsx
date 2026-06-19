@@ -5,6 +5,7 @@ import { motion } from 'motion/react';
 import { Button } from '../components/Button';
 import { Mail, Key, User, Shield, Info, CheckCircle, RefreshCw } from 'lucide-react';
 import { UserSession } from '../App';
+import { supabase } from '../lib/supabaseClient';
 
 const CLERK_PUBLISHABLE_KEY = ((import.meta as any).env?.VITE_CLERK_PUBLISHABLE_KEY as string) || "";
 
@@ -103,34 +104,52 @@ export const Signup: React.FC<SignupProps> = ({ user, setUser }) => {
         setSubmitting(false);
       }
     } else {
-      // Database Local signup path
+      // Database Local signup path via Supabase
       try {
-        const fullName = `${firstName} ${lastName}`.trim() || email.split('@')[0];
-        const res = await fetch('/api/auth/signup', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            email,
-            password,
-            name: fullName,
-            firstName,
-            lastName
-          })
-        });
-
-        const data = await res.json();
-        if (!res.ok) {
-          setError(data.error || 'Registration failed. Please try again.');
+        const emailLower = email.toLowerCase().trim();
+        const fName = firstName || "";
+        const lName = lastName || "";
+        const fullName = `${fName} ${lName}`.trim() || emailLower.split('@')[0];
+        
+        // Check if email already registered in Supabase
+        const { data: existingUsers, error: checkErr } = await supabase
+          .from('users')
+          .select('*')
+          .eq('email', emailLower);
+          
+        if (checkErr) throw checkErr;
+        
+        if (existingUsers && existingUsers.length > 0) {
+          setError('Email already registered');
           setSubmitting(false);
-        } else {
-          setSuccess('Account created successfully! Redirecting to log in page...');
-          // Delay briefly to allow user to see success message, then redirect to login
-          setTimeout(() => {
-            navigate('/login');
-          }, 1500);
+          return;
         }
-      } catch (err) {
-        setError('Connection to dynamic Neon service failed.');
+        
+        // Generate uniform random user ID
+        const generatedId = "user-" + Math.random().toString(36).substring(2, 11);
+        
+        // Insert user record directly to Supabase
+        const { error: insertErr } = await supabase
+          .from('users')
+          .insert({
+            id: generatedId,
+            name: fullName,
+            email: emailLower,
+            password,
+            role: "user",
+            first_name: fName,
+            last_name: lName
+          });
+          
+        if (insertErr) throw insertErr;
+
+        setSuccess('Account created successfully! Redirecting to log in page...');
+        // Delay briefly to allow user to see success message, then redirect to login
+        setTimeout(() => {
+          navigate('/login');
+        }, 1500);
+      } catch (err: any) {
+        setError(err.message || 'Connection to Supabase dynamic service failed.');
         setSubmitting(false);
       }
     }

@@ -15,6 +15,7 @@ import { PortfolioDetail } from './pages/PortfolioDetail';
 import { PrivacyPolicy } from './pages/PrivacyPolicy';
 import { TermsConditions } from './pages/TermsConditions';
 import { TikTokCourse } from './pages/TikTokCourse';
+import { supabase } from './lib/supabaseClient';
 
 export interface UserSession {
   id: string;
@@ -84,37 +85,57 @@ const ClerkSessionSync: React.FC<{ user: UserSession | null; setUser: (user: Use
       
       const syncUser = async () => {
         try {
-          const syncRes = await fetch('/api/auth/sync-clerk', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              id: clerkUser.id,
-              name: fullName,
-              email: uEmail,
-              firstName: fName,
-              lastName: lName
-            })
-          });
-          if (syncRes.ok) {
-            const data = await syncRes.json();
-            if (!user || user.id !== data.user.id || user.role !== data.user.role) {
-              setUser(data.user);
+          const { data: existingUser, error: fetchErr } = await supabase
+            .from('users')
+            .select('*')
+            .eq('id', clerkUser.id)
+            .maybeSingle();
+
+          if (fetchErr) throw fetchErr;
+
+          const defaultRole = (uEmail === 'intraxmedia@gmail.com' || uEmail === 'intraxmedia.team@gmail.com' || uEmail === 'intraxmediateam@gmail.com') ? 'admin' : 'user';
+
+          if (existingUser) {
+            const mappedUser: UserSession = {
+              id: existingUser.id,
+              name: existingUser.name,
+              email: existingUser.email,
+              role: (existingUser.role || 'user') as 'user' | 'admin'
+            };
+            if (!user || user.id !== mappedUser.id || user.role !== mappedUser.role) {
+              setUser(mappedUser);
             }
           } else {
-            // Server returned error but user is authorized in Clerk
-            const fallbackUser: UserSession = {
+            // Write profile row directly to Supabase users table
+            const newUser = {
               id: clerkUser.id,
               name: fullName,
               email: uEmail,
-              role: (uEmail === 'intraxmedia@gmail.com' || uEmail === 'intraxmedia.team@gmail.com' || uEmail === 'intraxmediateam@gmail.com') ? 'admin' : 'user'
+              password: 'clerk-managed-account',
+              first_name: fName,
+              last_name: lName,
+              role: defaultRole
             };
-            if (!user || user.id !== fallbackUser.id) {
-              setUser(fallbackUser);
+
+            const { error: insertErr } = await supabase
+              .from('users')
+              .insert(newUser);
+
+            if (insertErr) throw insertErr;
+
+            const mappedUser: UserSession = {
+              id: clerkUser.id,
+              name: fullName,
+              email: uEmail,
+              role: defaultRole as 'user' | 'admin'
+            };
+            if (!user || user.id !== mappedUser.id) {
+              setUser(mappedUser);
             }
           }
         } catch (err) {
           console.error("[Clerk AutoSync Error]", err);
-          // Client-side fallback so login succeeds even on connection issues
+          // Standard client-side fallback
           const fallbackUser: UserSession = {
             id: clerkUser.id,
             name: fullName,

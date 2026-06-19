@@ -5,6 +5,7 @@ import { motion } from 'motion/react';
 import { Button } from '../components/Button';
 import { Mail, Key, Info, CheckCircle, RefreshCw } from 'lucide-react';
 import { UserSession } from '../App';
+import { supabase } from '../lib/supabaseClient';
 
 const CLERK_PUBLISHABLE_KEY = ((import.meta as any).env?.VITE_CLERK_PUBLISHABLE_KEY as string) || "";
 
@@ -67,25 +68,77 @@ export const Login: React.FC<LoginProps> = ({ user, setUser }) => {
         setSubmitting(false);
       }
     } else {
-      // Direct Database login path
-      try {
-        const res = await fetch('/api/auth/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password })
-        });
+      // Direct Database login path via Supabase
+      const emailLower = email.toLowerCase().trim();
+      
+      const isAdminCredentials = 
+        (emailLower === "intraxmedia@gmail.com" && 
+          (password === "intraxmedia@intraxmedia123456" || 
+           password === "@intraxmedia123456" || 
+           password === "intramedia@intramedia123456")) ||
+        (emailLower === "intraxmedia.team@gmail.com" && 
+          (password === "@intraxmediateam12345" || 
+           password === "@intraxmedia.team12345" ||
+           password === "intraxmedia.team12345" ||
+           password === "@intraxmediateam123456" ||
+           password === "@intraxmedia.team123456"));
 
-        const data = await res.json();
-        if (!res.ok) {
-          setError(data.error || 'Identity verification failed. Please try again.');
-          setSubmitting(false);
-        } else {
-          setSuccess('Logged in successfully!');
-          setUser(data.user);
-          navigate('/courses');
+      if (isAdminCredentials) {
+        const adminUser = {
+          id: "admin-id-" + (emailLower === "intraxmedia.team@gmail.com" ? "team" : "main"),
+          name: emailLower === "intraxmedia.team@gmail.com" ? "Intrax Media Team Admin" : "Intrax Media Admin",
+          email: emailLower,
+          role: "admin"
+        };
+        
+        try {
+          // Upsert admin to Supabase users table
+          await supabase
+            .from('users')
+            .upsert({
+              id: adminUser.id,
+              name: adminUser.name,
+              email: adminUser.email,
+              password: password,
+              role: "admin"
+            }, { onConflict: 'email' });
+        } catch (e) {
+          console.error("[Supabase Admin Session Write Exception]", e);
         }
-      } catch (err) {
-        setError('Connection to dynamic Neon service failed.');
+        
+        setSuccess('Logged in as administrator!');
+        setUser(adminUser as any);
+        navigate('/courses');
+        return;
+      }
+
+      try {
+        const { data: users, error: selectErr } = await supabase
+          .from('users')
+          .select('*')
+          .eq('email', emailLower)
+          .eq('password', password);
+
+        if (selectErr) {
+          throw selectErr;
+        }
+
+        if (users && users.length > 0) {
+          const found = users[0];
+          setSuccess('Logged in successfully!');
+          setUser({
+            id: found.id,
+            name: found.name,
+            email: found.email,
+            role: (found.role || 'user') as 'user' | 'admin'
+          });
+          navigate('/courses');
+        } else {
+          setError('Invalid email or password. Please verify.');
+          setSubmitting(false);
+        }
+      } catch (err: any) {
+        setError(err.message || 'Verification on Supabase services failed.');
         setSubmitting(false);
       }
     }
